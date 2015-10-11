@@ -18,7 +18,13 @@ func listenHttp(done chan bool) {
 			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
-		fmt.Fprintf(w, "Hello world")
+		r.ParseForm()
+		username := r.FormValue("username")
+		if username == "" {
+			w.WriteHeader(http.StatusForbidden)
+			return
+		}
+		fmt.Fprintf(w, "Hello " + username)
 	})
 	http.HandleFunc("/close", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "Closing server ...")
