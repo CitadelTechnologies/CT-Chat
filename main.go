@@ -14,6 +14,10 @@ func main() {
 
 func listenHttp(done chan bool) {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != "POST" {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
 		fmt.Fprintf(w, "Hello world")
 	})
 	http.HandleFunc("/close", func(w http.ResponseWriter, r *http.Request) {
