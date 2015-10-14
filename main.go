@@ -7,6 +7,7 @@ import(
 	"io"
 	"encoding/json"
 	"encoding/hex"
+	"strings"
 )
 
 type (
@@ -32,44 +33,51 @@ func main() {
 
 func listenHttp(done chan bool) {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		var user User
 		if r.Method != "POST" {
 			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
 		r.ParseForm()
+		token := getAuthorizationToken(r.Header["Authorization"])
 		username := r.FormValue("username")
-		if username == "" {
-			w.WriteHeader(http.StatusForbidden)
-			c := Communication{Message: "You must have an username to sign in"}
-			if err := json.NewEncoder(w).Encode(&c); err != nil {
-				panic(err)
-			}
+		if !user.authenticate(w, token, username) {
 			return
 		}
-		if !isUsernameAvailable(username) {
-			w.WriteHeader(http.StatusUnauthorized)
-			c := Communication{Message: "This username is already taken"}
-			if err := json.NewEncoder(w).Encode(&c); err != nil {
-				panic(err)
-			}
-			return
-		}
-		token := generateToken(username)
-		users[token] = User{username: username, token: token}
-		c := Communication{Token: token, Message: "You are connected"}
-		if err := json.NewEncoder(w).Encode(&c); err != nil {
-			panic(err)
-		}
+		user.Respond(w, "Connected")
 	})
 	http.HandleFunc("/close", func(w http.ResponseWriter, r *http.Request) {
+		var user User
 		w.WriteHeader(http.StatusUnauthorized)
-		c := Communication{Message: "Closing server"}
-		if err := json.NewEncoder(w).Encode(&c); err != nil {
-			panic(err)
-		}
+		user.Respond(w, "Closing server")
 		done <- true
 	})
 	http.ListenAndServe(":5515", nil)
+}
+
+func (u *User) authenticate(w http.ResponseWriter, token string, username string) bool {
+	if currentUser, keyExists := users[token]; keyExists {
+		u.username = currentUser.username
+		u.token = currentUser.token
+		return true
+	}
+
+	if username == "" {
+		w.WriteHeader(http.StatusForbidden)
+		u.Respond(w, "You must have an username to sign in")
+		return false
+	}
+	if !isUsernameAvailable(username) {
+		w.WriteHeader(http.StatusUnauthorized)
+		u.Respond(w, "This username is already taken")
+		return false
+	}
+	newToken := generateToken(username)
+	u.username = username
+	u.token = newToken
+	u.Respond(w, "You are connected")
+	users[newToken] = *u
+	return false
 }
 
 func isUsernameAvailable(username string) bool {
@@ -86,4 +94,27 @@ func generateToken(username string) string {
 	io.WriteString(hash, username)
 	io.WriteString(hash, time.Now().Format(time.UnixDate))
 	return hex.EncodeToString(hash.Sum(nil))
+}
+
+func (u *User) Respond(w http.ResponseWriter, message string) {
+	var c Communication
+	c.Message = message
+
+	if(u.token != "") {
+		c.Token = u.token
+	}
+	if err := json.NewEncoder(w).Encode(&c); err != nil {
+		panic(err)
+	}
+}
+
+func getAuthorizationToken(authorizationHeader []string) string {
+	if len(authorizationHeader) == 0 {
+		return ""
+	}
+	authorization := strings.Split(authorizationHeader[0], " ")
+	if len(authorization) > 0 {
+		return authorization[1]
+	}
+	return ""
 }
