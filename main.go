@@ -34,14 +34,7 @@ func main() {
 func listenHttp(done chan bool) {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		var user User
-		if r.Method != "POST" {
-			w.WriteHeader(http.StatusUnauthorized)
-			return
-		}
-		r.ParseForm()
-		token := getAuthorizationToken(r.Header["Authorization"])
-		username := r.FormValue("username")
-		if !user.authenticate(w, token, username) {
+		if !user.authenticate(w, r) {
 			return
 		}
 		user.Respond(w, "Connected")
@@ -55,13 +48,21 @@ func listenHttp(done chan bool) {
 	http.ListenAndServe(":5515", nil)
 }
 
-func (u *User) authenticate(w http.ResponseWriter, token string, username string) bool {
+func (u *User) authenticate(w http.ResponseWriter, r *http.Request) bool {
+	token := getAuthorizationToken(r.Header["Authorization"])
+	r.ParseForm()
+	username := r.FormValue("username")
+
 	if currentUser, keyExists := users[token]; keyExists {
 		u.username = currentUser.username
 		u.token = currentUser.token
 		return true
 	}
 
+	if r.Method != "POST" {
+		w.WriteHeader(http.StatusUnauthorized)
+		return false
+	}
 	if username == "" {
 		w.WriteHeader(http.StatusForbidden)
 		u.Respond(w, "You must have an username to sign in")
