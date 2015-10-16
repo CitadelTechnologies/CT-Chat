@@ -5,5 +5,5 @@ type (
 		username string
 		token string
 	}
-	Users map[string]User
+	Users []User
 )

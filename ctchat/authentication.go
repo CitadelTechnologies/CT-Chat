@@ -23,28 +23,26 @@ func (u *User) Authenticate(w http.ResponseWriter, r *http.Request) bool {
 	}
 
 	if r.Method != "POST" {
-		w.WriteHeader(http.StatusUnauthorized)
+		u.SendPublicCommunication(w, "You are not connected", http.StatusUnauthorized)
 		return false
 	}
 	if username == "" {
-		w.WriteHeader(http.StatusForbidden)
-		u.SendPublicCommunication(w, "You must have an username to sign in")
+		u.SendPublicCommunication(w, "You must have an username to sign in", http.StatusForbidden)
 		return false
 	}
 	if !isUsernameAvailable(users, username) {
-		w.WriteHeader(http.StatusUnauthorized)
-		u.SendPublicCommunication(w, "This username is already taken")
+		u.SendPublicCommunication(w, "This username is already taken", http.StatusUnauthorized)
 		return false
 	}
 	newToken := generateToken(username)
 	u.username = username
 	u.token = newToken
-	u.SendPrivateCommunication(w, "You are connected")
+	u.SendPrivateCommunication(w, "You are connected", http.StatusOK)
 	users[newToken] = *u
 	return false
 }
 
-func isUsernameAvailable(users Users, username string) bool {
+func isUsernameAvailable(users map[string]User, username string) bool {
 	for _, user := range users {
 		if(user.username == username) {
 			return false
