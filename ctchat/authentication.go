@@ -22,6 +22,10 @@ func (u *User) Authenticate(w http.ResponseWriter, r *http.Request) bool {
 		return true
 	}
 
+	if r.Method == "OPTIONS" {
+		u.SendPublicCommunication(w, "", http.StatusOK)
+		return false
+	}
 	if r.Method != "POST" {
 		u.SendPublicCommunication(w, "You are not connected", http.StatusUnauthorized)
 		return false
