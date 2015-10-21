@@ -34,7 +34,7 @@ func listenHttp(done chan bool) {
 		if !user.Authenticate(w, r) {
 			return
 		}
-		ChatServer.Chatrooms["main"].Users[len(ChatServer.Chatrooms["main"].Users) + 1] = user
+		ChatServer.Chatrooms["main"].AddUser(user)
 		user.SendChatroomData(w, ChatServer.Chatrooms["main"], http.StatusOK)
 	})
 	http.HandleFunc("/close", func(w http.ResponseWriter, r *http.Request) {

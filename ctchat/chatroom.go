@@ -18,3 +18,16 @@ type(
 	}
 	Messages []Message
 )
+
+
+func (c Chatroom) AddUser(data ...User) {
+    m := len(c.Users)
+    n := m + len(data)
+    if n > cap(c.Users) {
+        newSlice := make([]User, (n+1)*2)
+        copy(newSlice, c.Users)
+        c.Users = newSlice
+    }
+    c.Users = c.Users[0:n]
+    copy(c.Users[m:n], data)
+}
