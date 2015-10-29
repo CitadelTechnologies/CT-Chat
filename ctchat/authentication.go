@@ -17,8 +17,8 @@ func (u *User) Authenticate(w http.ResponseWriter, r *http.Request) bool {
 	users := ChatServer.Users
 
 	if currentUser, keyExists := users[token]; keyExists {
-		u.username = currentUser.username
-		u.token = currentUser.token
+		u.Username = currentUser.Username
+		u.Token = currentUser.Token
 		return true
 	}
 
@@ -39,8 +39,8 @@ func (u *User) Authenticate(w http.ResponseWriter, r *http.Request) bool {
 		return false
 	}
 	newToken := generateToken(username)
-	u.username = username
-	u.token = newToken
+	u.Username = username
+	u.Token = newToken
 	u.SendPrivateCommunication(w, "You are connected", http.StatusOK)
 	users[newToken] = *u
 	return false
@@ -48,7 +48,7 @@ func (u *User) Authenticate(w http.ResponseWriter, r *http.Request) bool {
 
 func isUsernameAvailable(users map[string]User, username string) bool {
 	for _, user := range users {
-		if(user.username == username) {
+		if(user.Username == username) {
 			return false
 		}
 	}
