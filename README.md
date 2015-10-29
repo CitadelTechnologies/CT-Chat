@@ -9,3 +9,19 @@ In your GOPATH src directory :
 	cd ct-chat
 	go build
 ```
+
+Then you can get the ct-chat binary
+
+### Usage
+
+In the directory containing the binary :
+
+```shell
+	./ct-chat
+```
+
+### Documentation
+
+- [Authentication](doc/authentication.md)
+- [Chatrooms](doc/chatrooms.md)
+- [Administration](doc/administration.md)
