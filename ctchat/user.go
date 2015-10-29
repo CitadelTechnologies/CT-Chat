@@ -2,8 +2,8 @@ package ctchat
 
 type (
 	User struct {
-		username string
-		token string
+		Username string `json:"username"`
+		Token string `json:"-"`
 	}
 	Users []User
 )

@@ -15,14 +15,22 @@ type(
 	}
 	ChatroomData struct {
 		Token string `json:"token"`
-		Chatroom Chatroom `json:"chatroom"`
+		Chatroom *Chatroom `json:"chatroom"`
 	}
+	Message struct {
+		Token string `json:"token,omitempty"`
+		Type string `json:"type"`
+		Author string `json:"author"`
+		Content string `json:"content"`
+		Chatroom string `json:"chatroom"`
+	}
+	Messages []Message
 )
 
 func (u *User) SendPublicCommunication(w http.ResponseWriter, message string, status int) {
 	publicCommunication := PublicCommunication{Message: message}
 
-    w.Header().Set("Access-Control-Allow-Origin", "http://127.0.0.1")
+    w.Header().Set("Access-Control-Allow-Origin", "*")
     w.Header().Set("Access-Control-Allow-Headers", "accept, authorization")
     w.Header().Set("Access-Control-Allow-Methods", "GET, POST")
     w.WriteHeader(status)
@@ -32,9 +40,9 @@ func (u *User) SendPublicCommunication(w http.ResponseWriter, message string, st
 }
 
 func (u *User) SendPrivateCommunication(w http.ResponseWriter, message string, status int) {
-	privateCommunication := PrivateCommunication{Token: u.token, Message: message}
+	privateCommunication := PrivateCommunication{Token: u.Token, Message: message}
 
-    w.Header().Set("Access-Control-Allow-Origin", "http://127.0.0.1")
+    w.Header().Set("Access-Control-Allow-Origin", "*")
     w.Header().Set("Access-Control-Allow-Headers", "accept, authorization")
     w.Header().Set("Access-Control-Allow-Methods", "GET, POST")
     w.WriteHeader(status)
@@ -43,10 +51,10 @@ func (u *User) SendPrivateCommunication(w http.ResponseWriter, message string, s
 	}
 }
 
-func (u *User) SendChatroomData(w http.ResponseWriter, c Chatroom, status int) {
-	chatroomData := ChatroomData{Token: u.token, Chatroom: c}
+func (u *User) SendChatroomData(w http.ResponseWriter, c *Chatroom, status int) {
+	chatroomData := ChatroomData{Token: u.Token, Chatroom: c}
 
-    w.Header().Set("Access-Control-Allow-Origin", "http://127.0.0.1")
+    w.Header().Set("Access-Control-Allow-Origin", "*")
     w.Header().Set("Access-Control-Allow-Headers", "accept, authorization")
     w.Header().Set("Access-Control-Allow-Methods", "GET, POST")
     w.WriteHeader(status)
