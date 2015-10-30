@@ -90,19 +90,27 @@ func (wsc *WsConnection) Read(chatroom *Chatroom) {
 		if err != nil {
 			break
 		}
-		message := Message{}
-		json.Unmarshal([]byte(data), &message)
-		message.Token = ""
-		message.Type = "message"
-		message.Content = html.EscapeString(strings.TrimSpace(message.Content))
-		chatroom.Messages = append(chatroom.Messages, message)
-		jsonBroadcast, err := json.Marshal(message)
+		jsonBroadcast, err := json.Marshal(chatroom.AddMessage(data))
 		if err != nil {
 			panic(err)
 		}
 		wsc.Hub.Broadcast <- jsonBroadcast
 	}
 	wsc.Conn.Close()
+}
+
+func (c *Chatroom) AddMessage(data []byte) Message {
+	message := Message{}
+	json.Unmarshal([]byte(data), &message)
+	message.Token = ""
+	message.Type = "message"
+	message.Content = html.EscapeString(strings.TrimSpace(message.Content))
+	c.Messages = append(c.Messages, message)
+	if len(c.Messages) > 100 {
+		// Remove the older message when the limit is reached
+		c.Messages = append(c.Messages[:0], c.Messages[1:]...)
+	}
+	return message
 }
 
 func (wsc *WsConnection) Write() {
