@@ -33,6 +33,7 @@ func (u *User) SendPublicCommunication(w http.ResponseWriter, message string, st
     w.Header().Set("Access-Control-Allow-Origin", "*")
     w.Header().Set("Access-Control-Allow-Headers", "accept, authorization")
     w.Header().Set("Access-Control-Allow-Methods", "GET, POST")
+    w.Header().Set("Content-Type", "application/json")
     w.WriteHeader(status)
 	if err := json.NewEncoder(w).Encode(&publicCommunication); err != nil {
 		panic(err)
@@ -45,6 +46,7 @@ func (u *User) SendPrivateCommunication(w http.ResponseWriter, message string, s
     w.Header().Set("Access-Control-Allow-Origin", "*")
     w.Header().Set("Access-Control-Allow-Headers", "accept, authorization")
     w.Header().Set("Access-Control-Allow-Methods", "GET, POST")
+    w.Header().Set("Content-Type", "application/json")
     w.WriteHeader(status)
 	if err := json.NewEncoder(w).Encode(&privateCommunication); err != nil {
 		panic(err)
@@ -57,6 +59,7 @@ func (u *User) SendChatroomData(w http.ResponseWriter, c *Chatroom, status int) 
     w.Header().Set("Access-Control-Allow-Origin", "*")
     w.Header().Set("Access-Control-Allow-Headers", "accept, authorization")
     w.Header().Set("Access-Control-Allow-Methods", "GET, POST")
+    w.Header().Set("Content-Type", "application/json")
     w.WriteHeader(status)
 	if err := json.NewEncoder(w).Encode(&chatroomData); err != nil {
 		panic(err)
