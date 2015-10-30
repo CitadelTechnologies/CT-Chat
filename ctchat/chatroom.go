@@ -4,6 +4,8 @@ import(
 	"encoding/json"
 	"github.com/gorilla/websocket"
 	"net/http"
+	"strings"
+	"html"
 )
 
 type(
@@ -92,6 +94,7 @@ func (wsc *WsConnection) Read(chatroom *Chatroom) {
 		json.Unmarshal([]byte(data), &message)
 		message.Token = ""
 		message.Type = "message"
+		message.Content = html.EscapeString(strings.TrimSpace(message.Content))
 		chatroom.Messages = append(chatroom.Messages, message)
 		jsonBroadcast, err := json.Marshal(message)
 		if err != nil {
