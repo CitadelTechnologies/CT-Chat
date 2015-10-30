@@ -51,7 +51,6 @@ func (s *Server) listenHttp() {
 		if !user.Authenticate(w, r) {
 			return
 		}
-		s.Chatrooms["main"].AddUser(user)
 		user.SendChatroomData(w, s.Chatrooms["main"], http.StatusOK)
 	})
 	http.HandleFunc("/close", func(w http.ResponseWriter, r *http.Request) {

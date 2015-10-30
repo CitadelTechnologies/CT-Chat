@@ -42,6 +42,7 @@ func (u *User) Authenticate(w http.ResponseWriter, r *http.Request) bool {
 	u.Username = username
 	u.Token = newToken
 	u.SendPrivateCommunication(w, "You are connected", http.StatusOK)
+	ChatServer.Chatrooms["main"].AddUser(*u)
 	users[newToken] = *u
 	return false
 }
