@@ -1,3 +1,9 @@
+## 0.1.2 - 2015-31-10
+### Added
+- Notification when a new user is connected
+- Notification when an user is disconnected
+- Websocket handshake authentication
+
 ## 0.1.1 - 2015-30-10
 ### Added
 - Right content-type header for JSON responses
