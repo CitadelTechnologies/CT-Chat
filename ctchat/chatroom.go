@@ -17,6 +17,7 @@ type(
 	}
 	Chatrooms map[string]*Chatroom
 	WsConnection struct {
+		User *User
 		// The websocket connection.
 		Conn *websocket.Conn
 		// Buffered channel of outbound messages.
@@ -25,6 +26,7 @@ type(
 		Hub *WsHub
 	}
 	WsHub struct {
+		Chatroom *Chatroom
 		// Registered connections.
 		Connections map[*WsConnection]bool
 		// Inbound messages from the connections.
@@ -52,8 +54,9 @@ func (chatroom *Chatroom) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	c.Read(chatroom)
 }
 
-func NewHub() *WsHub {
-	return &WsHub{
+func (c *Chatroom) StartHub() {
+	c.Hub = &WsHub{
+		Chatroom:    c,
 		Broadcast:   make(chan []byte),
 		Register:    make(chan *WsConnection),
 		Unregister:  make(chan *WsConnection),
@@ -68,18 +71,43 @@ func (hub *WsHub) Run() {
 			hub.Connections[c] = true
 		case c := <-hub.Unregister:
 			if _, ok := hub.Connections[c]; ok {
+				if c.User != nil {
+					hub.disconnectUser(c)
+				}
 				delete(hub.Connections, c)
 				close(c.Send)
 			}
 		case m := <-hub.Broadcast:
-			for c := range hub.Connections {
-				select {
-				case c.Send <- m:
-				default:
-					delete(hub.Connections, c)
-					close(c.Send)
-				}
+			hub.broadcast(m)
+		}
+	}
+}
+
+func (hub *WsHub) disconnectUser(c *WsConnection) {
+	jsonBroadcast, err := json.Marshal(Message{
+		Type: "notification",
+		Author: c.User.Username,
+		Content: c.User.Username +  " is disconnected" ,
+		Chatroom: hub.Chatroom.Name,
+	})
+	if err != nil {
+		panic(err)
+	}
+	hub.broadcast(jsonBroadcast)
+	hub.Chatroom.DeleteUser(c.User)
+	c.User = nil
+}
+
+func (hub *WsHub) broadcast(m []byte) {
+	for c := range hub.Connections {
+		select {
+		case c.Send <- m:
+		default:
+			if c.User != nil {
+				hub.disconnectUser(c)
 			}
+			delete(hub.Connections, c)
+			close(c.Send)
 		}
 	}
 }
@@ -90,18 +118,32 @@ func (wsc *WsConnection) Read(chatroom *Chatroom) {
 		if err != nil {
 			break
 		}
-		jsonBroadcast, err := json.Marshal(chatroom.AddMessage(data))
-		if err != nil {
-			panic(err)
+		message := Message{}
+		json.Unmarshal([]byte(data), &message)
+		switch {
+			case message.Type == "authentication":
+				if chatroom.AuthenticateConnection(message, wsc) == true {
+					message.Type = "notification"
+					message.Content = message.Author + " is connected"
+					jsonBroadcast, err := json.Marshal(message)
+					if err != nil {
+						panic(err)
+					}
+					wsc.Hub.Broadcast <- jsonBroadcast
+				}
+			default:
+				message.Type = "message"
+				jsonBroadcast, err := json.Marshal(chatroom.AddMessage(message))
+				if err != nil {
+					panic(err)
+				}
+				wsc.Hub.Broadcast <- jsonBroadcast
 		}
-		wsc.Hub.Broadcast <- jsonBroadcast
 	}
 	wsc.Conn.Close()
 }
 
-func (c *Chatroom) AddMessage(data []byte) Message {
-	message := Message{}
-	json.Unmarshal([]byte(data), &message)
+func (c *Chatroom) AddMessage(message Message) Message {
 	message.Token = ""
 	message.Type = "message"
 	message.Content = html.EscapeString(strings.TrimSpace(message.Content))
@@ -133,4 +175,13 @@ func (c *Chatroom) AddUser(data ...User) {
     }
     c.Users = c.Users[0:n]
     copy(c.Users[m:n], data)
+}
+
+func (c *Chatroom) DeleteUser(u *User) {
+	for index, user := range c.Users {
+		if user.Token == u.Token {
+			c.Users = append(c.Users[:index], c.Users[index+1:]...)
+			delete(ChatServer.Users, u.Token)
+		}
+	}
 }

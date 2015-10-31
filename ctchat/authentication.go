@@ -49,7 +49,7 @@ func (u *User) Authenticate(w http.ResponseWriter, r *http.Request) bool {
 
 func isUsernameAvailable(users map[string]User, username string) bool {
 	for _, user := range users {
-		if(user.Username == username) {
+		if user.Username == username {
 			return false
 		}
 	}
@@ -72,4 +72,14 @@ func getAuthorizationToken(authorizationHeader []string) string {
 		return authorization[1]
 	}
 	return ""
+}
+
+func (c *Chatroom) AuthenticateConnection(message Message, wsc *WsConnection) bool {
+	for _, user := range c.Users {
+		if user.Token == message.Token {
+			wsc.User = &user
+			return true
+		}
+	}
+	return false
 }

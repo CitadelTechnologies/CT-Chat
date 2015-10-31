@@ -40,8 +40,8 @@ func (s *Server) startMainChatroom() {
 		Name: "main",
 		Users: make(Users, 0),
 		Messages: make(Messages, 0),
-		Hub: NewHub(),
 	}
+	s.Chatrooms["main"].StartHub()
 	go s.Chatrooms["main"].Hub.Run()
 }
 
