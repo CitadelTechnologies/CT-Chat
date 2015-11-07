@@ -23,7 +23,7 @@ type(
 		Author string `json:"author"`
 		Content string `json:"content"`
 		Chatroom string `json:"chatroom"`
-		ExtraData map[string]interface{} `json:"extra_data"`
+		ExtraData map[string]interface{} `json:"extra_data,omitempty"`
 	}
 	Messages []Message
 )

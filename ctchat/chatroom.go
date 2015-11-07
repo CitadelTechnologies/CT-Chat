@@ -89,6 +89,7 @@ func (hub *WsHub) disconnectUser(c *WsConnection) {
 		Author: c.User.Username,
 		Content: c.User.Username +  " is disconnected" ,
 		Chatroom: hub.Chatroom.Name,
+		ExtraData: map[string]interface{}{"notification_type": "disconnection"},
 	})
 	if err != nil {
 		panic(err)
@@ -125,6 +126,7 @@ func (wsc *WsConnection) Read(chatroom *Chatroom) {
 				if chatroom.AuthenticateConnection(message, wsc) == true {
 					message.Type = "notification"
 					message.Content = message.Author + " is connected"
+					message.ExtraData = map[string]interface{}{"notification_type": "connection"}
 					jsonBroadcast, err := json.Marshal(message)
 					if err != nil {
 						panic(err)
