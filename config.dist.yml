@@ -1,0 +1,4 @@
+ct-chat:
+	port: 5515
+	authorized_domains:
+		- 8thw.la-citadelle.net
