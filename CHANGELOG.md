@@ -1,3 +1,9 @@
+## Unreleased
+### Added
+- Configuration file
+- Port configuration
+- CORS configuration
+
 ## 0.1.2 - 2015-31-10
 ### Added
 - Notification when a new user is connected
