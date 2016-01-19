@@ -9,6 +9,7 @@ Get data about the current chatroom :
 - **URL** : /
 - **Headers** :
     * **Authorization** : Token {{token}}
+    * **X-Origin** : [client-website authorized domain]
 
 The response will be :
 
@@ -16,7 +17,7 @@ The response will be :
 - **Headers** :
     * **Access-Control-Allow-Headers** : accept, authorization
     * **Access-Control-Allow-Methods** : GET, POST
-    * **Access-Control-Allow-Origin** : \*
+    * **Access-Control-Allow-Origin** : [client-website authorized domain]
     * **Content-Type** : application/json
 - **Data** :
     ```json
@@ -42,5 +43,17 @@ The response will be :
                 }
             ]
         }
+    }
+    ```
+
+If the domain is missing or not authorized, the following error will be sent :
+
+- **Status** : 403
+- **Headers** :
+    * **Content-Type** : application/json
+- **Data** :
+    ```json
+    {
+        "message": "This domain is not authorized"
     }
     ```
