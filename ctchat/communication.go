@@ -30,39 +30,48 @@ type(
 
 func (u *User) SendPublicCommunication(w http.ResponseWriter, message string, status int) {
 	publicCommunication := PublicCommunication{Message: message}
-
-    w.Header().Set("Access-Control-Allow-Origin", "*")
-    w.Header().Set("Access-Control-Allow-Headers", "accept, authorization")
-    w.Header().Set("Access-Control-Allow-Methods", "GET, POST")
-    w.Header().Set("Content-Type", "application/json")
-    w.WriteHeader(status)
-	if err := json.NewEncoder(w).Encode(&publicCommunication); err != nil {
-		panic(err)
-	}
+	sendResponse(w, publicCommunication, status)
 }
 
 func (u *User) SendPrivateCommunication(w http.ResponseWriter, message string, status int) {
 	privateCommunication := PrivateCommunication{Token: u.Token, Message: message}
+	sendResponse(w, privateCommunication, status)
 
-    w.Header().Set("Access-Control-Allow-Origin", "*")
-    w.Header().Set("Access-Control-Allow-Headers", "accept, authorization")
-    w.Header().Set("Access-Control-Allow-Methods", "GET, POST")
-    w.Header().Set("Content-Type", "application/json")
-    w.WriteHeader(status)
-	if err := json.NewEncoder(w).Encode(&privateCommunication); err != nil {
-		panic(err)
-	}
 }
 
 func (u *User) SendChatroomData(w http.ResponseWriter, c *Chatroom, status int) {
 	chatroomData := ChatroomData{Token: u.Token, Chatroom: c}
+	sendResponse(w, chatroomData, status)
 
-    w.Header().Set("Access-Control-Allow-Origin", "*")
-    w.Header().Set("Access-Control-Allow-Headers", "accept, authorization")
-    w.Header().Set("Access-Control-Allow-Methods", "GET, POST")
+}
+
+func sendResponse(w http.ResponseWriter, data interface{}, status int) {
     w.Header().Set("Content-Type", "application/json")
     w.WriteHeader(status)
-	if err := json.NewEncoder(w).Encode(&chatroomData); err != nil {
+	if err := json.NewEncoder(w).Encode(&data); err != nil {
 		panic(err)
 	}
+}
+
+func (u *User) HandleAccessControl(w http.ResponseWriter, r *http.Request) bool {
+	origin, isset := r.Header["X-Origin"]
+	if isset != true || len(origin) < 1 || !isAuthorizedDomain(origin[0]) {
+		u.SendPublicCommunication(w, "This domain is not authorized", http.StatusForbidden)
+		return false
+	}
+    w.Header().Set("Access-Control-Allow-Origin", origin[0])
+    w.Header().Set("Access-Control-Allow-Headers", "accept, authorization")
+    w.Header().Set("Access-Control-Allow-Methods", "GET, POST")
+    return true
+}
+
+func isAuthorizedDomain(origin string) bool {
+
+	
+    for _, domain := range ChatServer.AuthorizedDomains {
+        if origin == domain {
+            return true
+        }
+    }
+    return false
 }

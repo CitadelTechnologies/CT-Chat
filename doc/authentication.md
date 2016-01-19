@@ -9,6 +9,7 @@ To authenticate to the chat, you need to send the following request :
 - **URL** : /
 - **Headers** :
     * **Content-Type** : application/x-www-form-urlencoded; charset=UTf-8
+    * **X-Origin** : [client-website authorized domain]
 - **Data Params** : username=[string]
 
 The response will be :
@@ -17,7 +18,7 @@ The response will be :
 - **Headers** :
     * **Access-Control-Allow-Headers** : accept, authorization
     * **Access-Control-Allow-Methods** : GET, POST
-    * **Access-Control-Allow-Origin** : \*
+    * **Access-Control-Allow-Origin** : [client-website authorized domain]
     * **Content-Type** : application/json
 - **Data** :
 	```json
@@ -26,7 +27,7 @@ The response will be :
         "message": "You are connected"
     }
     ```
-In case of error, the response will be :
+In case of error, the response will be one of the following :
 
 - **Status** : 401
 - **Headers** :
@@ -35,8 +36,33 @@ In case of error, the response will be :
     * **Access-Control-Allow-Origin** : \*
     * **Content-Type** : application/json
 - **Data** :
-	```json
+    ```json
     {
         "message": "You are not connected"
+    }
+    ```
+
+
+- **Status** : 401
+- **Headers** :
+    * **Access-Control-Allow-Headers** : accept, authorization
+    * **Access-Control-Allow-Methods** : GET, POST
+    * **Access-Control-Allow-Origin** : \*
+    * **Content-Type** : application/json
+- **Data** :
+    ```json
+    {
+        "message": "This username is already taken"
+    }
+    ```
+
+
+- **Status** : 403
+- **Headers** :
+    * **Content-Type** : application/json
+- **Data** :
+    ```json
+    {
+        "message": "This domain is not authorized"
     }
     ```

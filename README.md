@@ -12,6 +12,28 @@ In your GOPATH src directory :
 
 Then you can get the ct-chat binary
 
+### Configuration
+
+The application uses a configuration file to allow customizations.
+
+You have to copy this file to make it work !
+
+```shell
+	cp config.dist.yml config.yml
+```
+
+Then you can update the values. This is an example of configuration.
+
+```yml
+	ct-chat:
+		port: 5515
+		authorized_domains:
+			- example.com
+			- www.example.com
+```
+
+Now your chat is rightly configured !
+
 ### Usage
 
 In the directory containing the binary :
