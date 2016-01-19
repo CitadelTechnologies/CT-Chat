@@ -36,7 +36,9 @@ func Start() {
 		},
 		HttpDone: make(chan bool),
 	}
-	ChatServer.configure()
+	if err := ChatServer.configure(); err != nil {
+		panic(err)
+	}
 	ChatServer.startMainChatroom()
 	go ChatServer.listenHttp()
 	<-ChatServer.HttpDone
@@ -50,7 +52,7 @@ func(s *Server) configure() error {
     }
     data, err := ioutil.ReadFile("config.yml")
     if err != nil {
-        log.Fatal(err)
+        return err
     }
     if err := yaml.Unmarshal(data, &config); err != nil {
         return err
@@ -85,7 +87,7 @@ func (s *Server) listenHttp() {
 	})
 	http.HandleFunc("/close", func(w http.ResponseWriter, r *http.Request) {
 		var user User
-		if user.HandleAccessControl(w, r) || !user.Authenticate(w, r) {
+		if !user.HandleAccessControl(w, r) || !user.Authenticate(w, r) {
 			return
 		}
 		user.SendPrivateCommunication(w, "Closing server", http.StatusOK)

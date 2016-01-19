@@ -1,8 +1,9 @@
-## Unreleased
+## 0.1.3 - 2016-01-19
 ### Added
 - Configuration file
 - Port configuration
 - CORS configuration
+- Date field for messages
 
 ## 0.1.2 - 2015-31-10
 ### Added
