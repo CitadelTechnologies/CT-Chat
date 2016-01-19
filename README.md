@@ -25,11 +25,10 @@ You have to copy this file to make it work !
 Then you can update the values. This is an example of configuration.
 
 ```yml
-	ct-chat:
-		port: 5515
-		authorized_domains:
-			- example.com
-			- www.example.com
+	port: 5560
+	authorized_domains:
+		- example.com
+		- www.example.com
 ```
 
 Now your chat is rightly configured !

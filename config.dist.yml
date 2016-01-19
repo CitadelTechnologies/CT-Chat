@@ -1,5 +1,4 @@
-ct-chat:
-	port: 5515
-	authorized_domains:
-		- example.com
-		- www.example.com
+port: 5515
+authorized_domains:
+    - example.com
+    - www.example.com
