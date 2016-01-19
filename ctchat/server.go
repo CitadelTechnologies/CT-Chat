@@ -4,6 +4,10 @@ import(
 	"net/http"
 	"log"
 	"github.com/gorilla/websocket"
+	"io/ioutil"
+	"errors"
+	"strconv"
+	"gopkg.in/yaml.v2"
 )
 
 type(
@@ -12,6 +16,8 @@ type(
 		Chatrooms Chatrooms
 		WsUpgrader websocket.Upgrader
 		HttpDone chan bool
+		Port int
+		AuthorizedDomains []string
 	}
 )
 
@@ -30,9 +36,32 @@ func Start() {
 		},
 		HttpDone: make(chan bool),
 	}
+	ChatServer.configure()
 	ChatServer.startMainChatroom()
 	go ChatServer.listenHttp()
 	<-ChatServer.HttpDone
+}
+
+func(s *Server) configure() error {
+	// Temporary structure to load the YAML configuration in
+    var config struct {
+        Port     string `yaml:"port"`
+    	AuthorizedDomains []string `yaml:"authorized_domains"`
+    }
+    data, err := ioutil.ReadFile("config.yml")
+    if err != nil {
+        log.Fatal(err)
+    }
+    if err := yaml.Unmarshal(data, &config); err != nil {
+        return err
+    }
+    port, err := strconv.Atoi(config.Port)
+    if err != nil {
+        return errors.New("Server config: invalid `port`")
+    }
+    s.Port = port
+    s.AuthorizedDomains = config.AuthorizedDomains
+    return nil
 }
 
 func (s *Server) startMainChatroom() {
@@ -48,21 +77,22 @@ func (s *Server) startMainChatroom() {
 func (s *Server) listenHttp() {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		var user User
-		if !user.Authenticate(w, r) {
+		
+		if !user.HandleAccessControl(w, r) || !user.Authenticate(w, r) {
 			return
 		}
 		user.SendChatroomData(w, s.Chatrooms["main"], http.StatusOK)
 	})
 	http.HandleFunc("/close", func(w http.ResponseWriter, r *http.Request) {
 		var user User
-		if !user.Authenticate(w, r) {
+		if user.HandleAccessControl(w, r) || !user.Authenticate(w, r) {
 			return
 		}
 		user.SendPrivateCommunication(w, "Closing server", http.StatusOK)
 		s.HttpDone <- true
 	})
 	http.Handle("/main", s.Chatrooms["main"])
-	if err := http.ListenAndServe(":5515", nil); err != nil {
+	if err := http.ListenAndServe(":" + strconv.Itoa(s.Port), nil); err != nil {
 		log.Fatal("ListenAndServe:", err)
 	}
 }
