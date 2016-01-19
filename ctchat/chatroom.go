@@ -6,6 +6,7 @@ import(
 	"net/http"
 	"strings"
 	"html"
+	"time"
 )
 
 type(
@@ -125,6 +126,7 @@ func (wsc *WsConnection) Read(chatroom *Chatroom) {
 			case message.Type == "authentication":
 				if chatroom.AuthenticateConnection(message, wsc) == true {
 					message.Type = "notification"
+					message.CreatedAt = time.Now()
 					message.Content = message.Author + " is connected"
 					message.ExtraData = map[string]interface{}{"notification_type": "connection"}
 					jsonBroadcast, err := json.Marshal(message)
@@ -135,6 +137,7 @@ func (wsc *WsConnection) Read(chatroom *Chatroom) {
 				}
 			default:
 				message.Type = "message"
+				message.CreatedAt = time.Now()
 				jsonBroadcast, err := json.Marshal(chatroom.AddMessage(message))
 				if err != nil {
 					panic(err)

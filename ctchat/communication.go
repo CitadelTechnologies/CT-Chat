@@ -3,6 +3,7 @@ package ctchat
 import(
 	"net/http"
 	"encoding/json"
+	"time"
 )
 
 type(
@@ -22,6 +23,7 @@ type(
 		Type string `json:"type"`
 		Author string `json:"author"`
 		Content string `json:"content"`
+		CreatedAt time.Time `json:"created_at"`
 		Chatroom string `json:"chatroom"`
 		ExtraData map[string]interface{} `json:"extra_data,omitempty"`
 	}
@@ -54,7 +56,7 @@ func sendResponse(w http.ResponseWriter, data interface{}, status int) {
 }
 
 func (u *User) HandleAccessControl(w http.ResponseWriter, r *http.Request) bool {
-	origin, isset := r.Header["X-Origin"]
+	origin, isset := r.Header["Origin"]
 	if isset != true || len(origin) < 1 || !isAuthorizedDomain(origin[0]) {
 		u.SendPublicCommunication(w, "This domain is not authorized", http.StatusForbidden)
 		return false
@@ -66,8 +68,6 @@ func (u *User) HandleAccessControl(w http.ResponseWriter, r *http.Request) bool 
 }
 
 func isAuthorizedDomain(origin string) bool {
-
-	
     for _, domain := range ChatServer.AuthorizedDomains {
         if origin == domain {
             return true
